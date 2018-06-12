@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Tiny App</title>
+  </head>
+  <body>
+    <% include partials/_header %>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ShortURL</th>
+            <th>URL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for ( key in urls) { %>
+          <tr>
+            <td><%= key %></td>
+            <td><%= urls[key] %></td>
+          </tr>
+          <% } %>
+          <tr>
+            <td colSpan="2">
+              <a href="/urls/new">New URL</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

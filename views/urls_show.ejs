@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include partials/_header %>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Tiny App</title>
+  </head>
+  <body>
+    <div class="container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ShortURL</th>
+            <th>URL</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td><%= shortURL %></td>
+            <td><%= longURL %></td>
+          </tr>
+
+          <tr>
+            <td colSpan="2">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
