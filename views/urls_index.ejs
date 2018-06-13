@@ -15,10 +15,16 @@
           </tr>
         </thead>
         <tbody>
-          <% for ( key in urls) { %>
+          <% for (key in urls) { %>
           <tr>
             <td><%= key %></td>
             <td><%= urls[key] %></td>
+            <td><a href="/urls/<%= key %>/">Edit</a></td>
+            <td>
+              <form method="POST" action="/urls/<%= key %>/delete">
+                <input type="submit" value="Delete"/>
+              </form>
+            </td>
           </tr>
           <% } %>
           <tr>

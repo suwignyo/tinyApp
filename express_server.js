@@ -1,5 +1,5 @@
 const express = require("express");
-const ejs = require("ejs");
+// const ejs = require("ejs");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
@@ -11,6 +11,10 @@ app.set("view engine", "ejs");
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
+};
+
+const render404 = res => {
+  res.status(404).render("404");
 };
 
 app.get("/", (req, res) => {
@@ -39,23 +43,30 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
+  let id = req.params.id;
+  let templateVars = { shortURL: id, longURL: urlDatabase[id] };
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls/:id/edit", (req, res) => {
+  let id = req.params.id;
+  // console.log(req.body)
+  // console.log(urlDatabase)
+  urlDatabase[id] = req.body.longurl;
+  res.redirect("/urls");
+});
+
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // debug statement to see POST parameters
   var newShort = generateRandomString();
   var errors = []
   if (!req.body.longURL) {
     errors.push('URL is required')
   }
   if (errors.length > 0){
-    res.send(errors[1])
-    // res.render('urls/new', {errors: errors})
+    res.status('400')
+    res.render('urls_new', {errors: errors})
   } else{
     urlDatabase[newShort] = req.body.longURL;
-    urlDatabase;
     res.redirect('/urls');
     }
 
@@ -68,8 +79,37 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+  const url = req.params.id
+  if (url) {
+    delete urlDatabase[url]
+  }
+  else{
+    render404(res);
+  }
+  res.redirect('/urls');
+});
+
+// GET /dogs/:id/edit - Update Form
+// app.get("/urls/:id/edit", (req, res) => {
+//   const url = req.params.id;
+//   if (url) {
+//     res.render("url/edit/", { dog: dog });
+//   } else {
+//     render404(res);
+//   }
+// });
+
+
 function generateRandomString (){
-  var rand = '';
-  rand = Math.random().toString(36).substring(2,8);
+  // var rand = '';
+  // rand = Math.random().toString(36).substring(2,8);
+  // return rand;
+  var rand = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 6; i++)
+    rand += possible.charAt(Math.floor(Math.random() * possible.length));
+
   return rand;
 }
