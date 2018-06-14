@@ -1,20 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>TinyApp</title>
-</head>
-<body>
-      <% if(username){ %>
-      <%= username%>
+<header>
+      <% if(user){ %>
+      <%= user.email%>
       <form action="/logout" method="POST" style="margin:150px">
       <input type="submit" value="Logout">
        </form>
-      <% } else{ %>
-      <form action="/login" method="POST" style="margin:150px">
-      <label for="username">Username</label>
-      <input type="text" name=username placeholder="username" style="width: 150px">
-      <input type="submit" value="Login">
+      <% } else { %>
+      <td colSpan="2">
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+      </td>
       <% } %>
-    </form>
-</body>
-</html>
+  </header>
