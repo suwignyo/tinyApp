@@ -78,7 +78,7 @@ app.post("/urls", (req, res) => {
     }
 })
 
-app.get("/urls/new", (req, res) => {
+app.get("/urls/new", userAuthentication, (req, res) => {
   let templateVars = {errors : [], urls: urlDatabase,
   username: req.cookies["username"], user: users[req.cookies.username]}
   res.render("urls_new", templateVars);
@@ -188,4 +188,13 @@ function generateRandomString (){
     rand += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return rand;
+}
+
+function userAuthentication (req, res, next) {
+  if (req.cookies["username"]){
+    next();
+  }
+  else{
+    res.redirect('/login')
+  }
 }
