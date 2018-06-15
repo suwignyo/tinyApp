@@ -18,7 +18,7 @@
           <% for (key in urls) { %>
           <tr>
             <td><%= key %></td>
-            <td><%= urls[key] %></td>
+            <td><%= urls[key].long_URL %></td>
             <td><a href="/urls/<%= key %>/">Edit</a></td>
             <td>
               <form method="POST" action="/urls/<%= key %>/delete">
