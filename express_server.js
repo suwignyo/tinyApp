@@ -77,7 +77,7 @@ app.get("/urls", (req, res) => {
   console.log("cookie:", users[req.session.user_ID])
   var errors = []
   // console.log(urlDatabase)
-  res.redirect("/login")
+  res.render("urls_index", templateVars)
 });
 
 app.post("/urls", (req, res) => {
@@ -109,31 +109,35 @@ app.get("/urls/:id", (req, res) => {
   let id = req.params.id;
   let templateVars = { shortURL: id, longURL: urlDatabase[id].long_URL,
   username: req.session.user_ID, user: users[req.session.user_ID]};
-  res.render("urls_show", templateVars);
+  if (req.session.user_ID && (req.session.user_ID === req.params.id)){
+    res.render("urls_show", templateVars);
+    }
+  res.send("Please login").status(400)
 });
 
 app.post("/urls/:id/edit", userAuthentication, (req, res) => {
   let id = req.params.id;
-  // console.log(id)
-  // console.log("req.bodyname",req.body.name)
-  // console.log(urlDatabase)
   urlDatabase[id].long_URL = req.body.name;
   res.redirect("/urls");
 });
 
 app.get("/login", (req, res) => {
-  // let id = req.params.id;
-  // res.session('user_ID', req.body.user_ID);
   let templateVars = {errors:[], urls: urlDatabase,
   username: req.session.user_ID, user: users[req.session.user_ID]};
-  res.render("urls_login", templateVars);
-});
+  if (!req.session.user_ID){
+    res.render("urls_login", templateVars);
+    return
+  }
+  res.redirect('/urls')
+  });
 
 app.post("/login", (req, res) => {
-  // console.log("login: users id",users[id].password)
+  var errors = []
   console.log("login: req id",req.body.password)
-  if (req.body.email === '' || req.body.email === ''){
-    res.sendStatus(400)
+  if (req.body.email === '' || req.body.password === ''){
+    errors.push('Username or password is incorrect')
+    res.render('urls_login', {errors: errors,
+    user: users[req.session.user_ID]})
     return
   }
   for (id in users){
@@ -143,7 +147,8 @@ app.post("/login", (req, res) => {
       return
     }
   }
-  res.sendStatus(400)
+  res.render('urls_login', {errors: errors,
+  user: users[req.session.user_ID]})
   // res.session('username', newID);
   // console.log(users);
   // // res.session('username', req.session.user_ID);
@@ -158,9 +163,14 @@ app.post("/logout", (req, res) => {
 
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL].long_URL
-  // console.log(longURL)
-  res.redirect(longURL);
+  let longURL = urlDatabase[req.params.shortURL]
+  for (i in urlDatabase){
+    console.log(i)
+    if (req.params.shortURL ===  i){
+    res.redirect(longURL.long_URL);
+  }
+  }
+  res.sendStatus(400)
 });
 
 app.post("/urls/:id/delete", userAuthentication, (req, res) => {
@@ -178,8 +188,11 @@ app.post("/urls/:id/delete", userAuthentication, (req, res) => {
 app.get("/register", (req, res) => {
   let templateVars = {errors:[], urls: urlDatabase,
   username: req.session.user_ID, user: users[req.session.user_ID]};
-  console.log(users[req.session.user_ID])
-  res.render("urls_register", templateVars);
+  if (!req.session.user_ID){
+    res.render("urls_register", templateVars);
+    return;
+  }
+  res.redirect('/urls')
 });
 
 app.post("/register", (req, res) => {
