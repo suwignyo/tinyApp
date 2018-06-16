@@ -42,14 +42,6 @@ const users = {
   }
 }
 
-const render404 = res => {
-  res.status(404).render("404");
-};
-
-const render400 = res => {
-  res.status(400).render("400");
-};
-
 app.get("/", (req, res) => {
   if (req.session.user_ID){
   res.redirect("/urls");
@@ -69,17 +61,20 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+/* Front page of Tiny App, when no user is logged in
+it will show a login and register page
+*/
 app.get("/urls", (req, res) => {
   let templateVars = { errors: errors, urls: urlsForUser(req.session.user_ID),
   username: req.session.user_ID, user:
   users[req.session.user_ID]};
-  // console.log("urlsuser:",urlsForUser(req.session.user_ID))
-  // console.log("cookie:", users[req.session.user_ID])
   var errors = []
-  // console.log(urlDatabase)
   res.render("urls_index", templateVars)
 });
 
+/* When user are logged in, the page shows the short URL
+associated with user
+*/
 app.post("/urls", (req, res) => {
   var newShort = generateRandomString();
   var errors = []
@@ -98,6 +93,8 @@ app.post("/urls", (req, res) => {
     }
 })
 
+/* If user is logged in, user can create a new shortened URL
+*/
 app.get("/urls/new", userAuthentication, (req, res) => {
   let templateVars = {errors : [], urls: urlDatabase,
   username: req.session.user_ID, user: users[req.session.user_ID]}
@@ -105,13 +102,15 @@ app.get("/urls/new", userAuthentication, (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+/* If user is logged in, user is able to edit the long URL
+associated with the shortened URL, if another user tries to go here
+it will give them an error
+*/
 app.get("/urls/:id", (req, res) => {
   let id = req.params.id;
   let templateVars = { shortURL: id, longURL: urlDatabase[id].long_URL,
   username: req.session.user_ID, user: users[req.session.user_ID]};
   let owns = urlDatabase[id].owner
-
-  console.log("owns:",owns)
   if (req.session.user_ID && (req.session.user_ID === owns)){
     res.render("urls_show", templateVars);
     return
@@ -119,12 +118,16 @@ app.get("/urls/:id", (req, res) => {
   res.send("Please login").status(400)
 });
 
+/* Edits user long URL and shows it in user's homepage
+*/
 app.post("/urls/:id/edit", userAuthentication, (req, res) => {
   let id = req.params.id;
   urlDatabase[id].long_URL = req.body.name;
   res.redirect("/urls");
 });
 
+/* Any user can be redirected to a long URL given the right short URL
+*/
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL]
   for (i in urlDatabase){
@@ -136,6 +139,8 @@ app.get("/u/:shortURL", (req, res) => {
   res.sendStatus(400)
 });
 
+/* Deletes user's shortURL from the database
+*/
 app.post("/urls/:id/delete", userAuthentication, (req, res) => {
   const url = req.params.id
   console.log("deleteurl:",url)
@@ -150,6 +155,9 @@ app.post("/urls/:id/delete", userAuthentication, (req, res) => {
   res.redirect('/urls');
 });
 
+/*If user is logged in, will be redirected to their homepage,
+otherwise they will see the login screen
+*/
 app.get("/login", (req, res) => {
   let templateVars = {errors:[], urls: urlDatabase,
   username: req.session.user_ID, user: users[req.session.user_ID]};
@@ -160,6 +168,9 @@ app.get("/login", (req, res) => {
   res.redirect('/urls')
   });
 
+/*Checks user credential, will give the appropriate errors depending
+on error, otherwise it will log user in
+*/
 app.post("/login", (req, res) => {
   var errors = []
   var count = 0
@@ -200,12 +211,17 @@ app.post("/login", (req, res) => {
   user: users[req.session.user_ID]})
 });
 
+/*Logs out user and clearing the session cookie
+*/
 app.post("/logout", (req, res) => {
   // let id = req.params.id;
   req.session = null;
   res.redirect("/urls");
 });
 
+/*If user is logged in, will be redirected to their homepage,
+otherwise they will see the register screen
+*/
 app.get("/register", (req, res) => {
   let templateVars = {errors:[], urls: urlDatabase,
   username: req.session.user_ID, user: users[req.session.user_ID]};
@@ -216,6 +232,9 @@ app.get("/register", (req, res) => {
   res.redirect('/urls')
 });
 
+/*Checks user credential, will give the appropriate errors depending
+on error, otherwise it will register the user
+*/
 app.post("/register", (req, res) => {
   let newID = generateRandomString()
   var errors = []
@@ -243,21 +262,23 @@ app.post("/register", (req, res) => {
    } else{
   users[newID] = {id: newID, email: req.body.email, password: bcrypt.hashSync(req.body.password, 10)}
   req.session.user_ID = newID;
-  // console.log(users);
   res.redirect('/urls');
 }
 });
 
+/*Generates a random string for the short URL
+*/
 function generateRandomString (){
   var rand = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
   for (var i = 0; i < 6; i++)
     rand += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return rand;
 }
 
+/*Checks if user is logged in or not
+*/
 function userAuthentication (req, res, next) {
   if (req.session.user_ID){
     next();
@@ -267,6 +288,8 @@ function userAuthentication (req, res, next) {
   }
 }
 
+/*creates an object containing only their shortened URL
+*/
 function urlsForUser(idCookie){
   let temp = {}
     for (userid in urlDatabase){
