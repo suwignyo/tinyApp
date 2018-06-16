@@ -74,7 +74,7 @@ app.get("/urls", (req, res) => {
   username: req.session.user_ID, user:
   users[req.session.user_ID]};
   // console.log("urlsuser:",urlsForUser(req.session.user_ID))
-  console.log("cookie:", users[req.session.user_ID])
+  // console.log("cookie:", users[req.session.user_ID])
   var errors = []
   // console.log(urlDatabase)
   res.render("urls_index", templateVars)
@@ -109,8 +109,12 @@ app.get("/urls/:id", (req, res) => {
   let id = req.params.id;
   let templateVars = { shortURL: id, longURL: urlDatabase[id].long_URL,
   username: req.session.user_ID, user: users[req.session.user_ID]};
-  if (req.session.user_ID && (req.session.user_ID === req.params.id)){
+  let owns = urlDatabase[id].owner
+
+  console.log("owns:",owns)
+  if (req.session.user_ID && (req.session.user_ID === owns)){
     res.render("urls_show", templateVars);
+    return
     }
   res.send("Please login").status(400)
 });
@@ -120,47 +124,6 @@ app.post("/urls/:id/edit", userAuthentication, (req, res) => {
   urlDatabase[id].long_URL = req.body.name;
   res.redirect("/urls");
 });
-
-app.get("/login", (req, res) => {
-  let templateVars = {errors:[], urls: urlDatabase,
-  username: req.session.user_ID, user: users[req.session.user_ID]};
-  if (!req.session.user_ID){
-    res.render("urls_login", templateVars);
-    return
-  }
-  res.redirect('/urls')
-  });
-
-app.post("/login", (req, res) => {
-  var errors = []
-  console.log("login: req id",req.body.password)
-  if (req.body.email === '' || req.body.password === ''){
-    errors.push('Username or password is incorrect')
-    res.render('urls_login', {errors: errors,
-    user: users[req.session.user_ID]})
-    return
-  }
-  for (id in users){
-    if ((users[id].email === req.body.email) && (bcrypt.compareSync(req.body.password, users[id].password))){
-      req.session.user_ID = users[id].id;
-      res.redirect("/urls")
-      return
-    }
-  }
-  res.render('urls_login', {errors: errors,
-  user: users[req.session.user_ID]})
-  // res.session('username', newID);
-  // console.log(users);
-  // // res.session('username', req.session.user_ID);
-  // res.redirect("/urls");
-});
-
-app.post("/logout", (req, res) => {
-  // let id = req.params.id;
-  req.session = null;
-  res.redirect("/urls");
-});
-
 
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL]
@@ -175,7 +138,9 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls/:id/delete", userAuthentication, (req, res) => {
   const url = req.params.id
-  if (req.session.user_ID === url) {
+  console.log("deleteurl:",url)
+  console.log("req.session:",req.session.user_ID)
+  if (req.session.user_ID === urlDatabase[url].owner) {
     delete urlDatabase[url]
   }
   else{
@@ -183,6 +148,62 @@ app.post("/urls/:id/delete", userAuthentication, (req, res) => {
     return
   }
   res.redirect('/urls');
+});
+
+app.get("/login", (req, res) => {
+  let templateVars = {errors:[], urls: urlDatabase,
+  username: req.session.user_ID, user: users[req.session.user_ID]};
+  if (!req.session.user_ID){
+    res.render("urls_login", templateVars);
+    return
+  }
+  res.redirect('/urls')
+  });
+
+app.post("/login", (req, res) => {
+  var errors = []
+  var count = 0
+  console.log("login: req id",req.body.password)
+  if (req.body.email === ''){
+    errors.push('Please provide an email')
+    res.render('urls_login', {errors: errors,
+    user: users[req.session.user_ID]})
+    return
+  } if (req.body.password === ''){
+    errors.push('Please enter a password')
+    res.render('urls_login', {errors: errors,
+    user: users[req.session.user_ID]})
+    return
+  }
+  for (id in users){
+     if (users[id].email === req.body.email){
+      count += 1
+      if (bcrypt.compareSync(req.body.password, users[id].password)){
+        req.session.user_ID = users[id].id;
+        res.redirect("/urls")
+        return
+      } if (!bcrypt.compareSync(req.body.password, users[id].password)){
+        errors.push('Incorrect password')
+        res.render('urls_login', {errors: errors,
+        user: users[req.session.user_ID]})
+        return
+      }
+    }
+  }
+  if (count === 0){
+    errors.push('Please provide a valid email')
+    res.render('urls_login', {errors: errors,
+    user: users[req.session.user_ID]})
+    return
+  }
+  res.render('urls_login', {errors: errors,
+  user: users[req.session.user_ID]})
+});
+
+app.post("/logout", (req, res) => {
+  // let id = req.params.id;
+  req.session = null;
+  res.redirect("/urls");
 });
 
 app.get("/register", (req, res) => {
@@ -198,15 +219,20 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   let newID = generateRandomString()
   var errors = []
-  if (req.body.email === '' || req.body.password === '') {
-      errors.push('Username or password is incorrect')
-      res.render('urls_register', {errors: errors,
-      user: users[req.session.user_ID]})
-      return
+  if (req.body.email === ''){
+    errors.push('Please provide an email')
+    res.render('urls_register', {errors: errors,
+    user: users[req.session.user_ID]})
+    return
+  } if (req.body.password === ''){
+    errors.push('Please enter a password')
+    res.render('urls_register', {errors: errors,
+    user: users[req.session.user_ID]})
+    return
   }
   for (id in users){
     if (users[id].email === req.body.email){
-      errors.push("Username or password is incorrect")
+      errors.push("Username exists")
     }
   }
   if (errors.length > 0){
