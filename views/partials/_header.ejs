@@ -1,13 +1,16 @@
-<header>
-      <% if(user){ %>
-      <%= user.email%>
-      <form action="/logout" method="POST" style="margin:150px">
-      <input type="submit" value="Logout">
-       </form>
-      <% } else { %>
-      <td colSpan="2">
-      <a href="/login">Login</a>
-      <a href="/register">Register</a>
-      </td>
-      <% } %>
-  </header>
+<header style="text-align: center;">
+  <h1>
+    Tiny App
+  </h1>
+    <% if(user){ %>
+    <%= user.email%>
+    <form action="/logout" method="POST" style="margin:10px">
+    <input type="submit" value="Logout">
+     </form>
+    <% } else { %>
+    <td colSpan="2">
+    <a href="/login" align="center" style="margin:10px">Login</a>
+    <a href="/register" align="center">Register</a>
+    </td>
+    <% } %>
+</header>
